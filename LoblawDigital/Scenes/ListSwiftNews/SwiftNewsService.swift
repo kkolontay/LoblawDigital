@@ -10,7 +10,7 @@ import UIKit
 
 
 protocol SwiftNewsServiceProtocol {
-  func fetchData(success: @escaping ((ParentOwner) -> Void), errorMessage:@escaping ((String) -> Void))
+   func fetchData(count: Int?, nextPage: String?, success: @escaping ((ParentOwner) -> Void), errorMessage:@escaping ((String) -> Void))
   func downloadImage(url: String, success: @escaping ((UIImage?) -> Void))
   func cancelRequest(url: String)
 }
@@ -24,9 +24,9 @@ class SwiftNewsService: SwiftNewsServiceProtocol {
     activeImageDowloading = Dictionary<String, Download>()
   }
   
-  func fetchData(success: @escaping ((ParentOwner) -> Void), errorMessage:@escaping ((String) -> Void)) {
+  func fetchData(count: Int?, nextPage: String?, success: @escaping ((ParentOwner) -> Void), errorMessage:@escaping ((String) -> Void)) {
     let url = StringURLRequest.fetchSwiftNews()
-    let networkRequest = NetworkRequests(url) {
+    let networkRequest = NetworkRequests(url, count: count, after: nextPage) {
       data, error in
       if error != nil {
         errorMessage(error!)

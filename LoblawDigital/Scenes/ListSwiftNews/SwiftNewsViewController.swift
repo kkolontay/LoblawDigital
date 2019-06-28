@@ -13,8 +13,11 @@ class SwiftNewsViewController: UIViewController {
   @IBOutlet private weak var tableView: UITableView!
   private var viewModel: SwiftNewsViewProtocol?
   private var activityIndicator: UIActivityIndicatorView?
+  private var isMoreNews = false
+  typealias ResultRequest = (([SwiftNewsModel], Bool) -> Void)
+  private var resultRequst: ResultRequest?
   
-  private var swiftNews:[SwiftNewsModel]? {
+  private var swiftNews:[SwiftNewsModel]? = [] {
     didSet {
       if swiftNews != nil {
         tableView.reloadData()
@@ -26,6 +29,14 @@ class SwiftNewsViewController: UIViewController {
     super.viewDidLoad()
     viewModel = SwiftNewsViewModel()
     initActivityIndicatory()
+    resultRequst =  {[weak self] (news, isMore) in
+      DispatchQueue.main.async {
+        self?.isMoreNews = isMore
+        self?.swiftNews = (self?.swiftNews ?? []) + news
+        self?.activityIndicator?.stopAnimating()
+      }
+      
+    }
   }
   
   func initActivityIndicatory() {
@@ -42,12 +53,7 @@ class SwiftNewsViewController: UIViewController {
     super.viewWillAppear(animated)
     self.title = "Swift News"
     activityIndicator?.startAnimating()
-    viewModel?.fetchNews(news: {[weak self] (news) in
-      DispatchQueue.main.async {
-        self?.swiftNews = news
-        self?.activityIndicator?.stopAnimating()
-      }
-      }, errorMessage: {[weak self] (error) in
+    viewModel?.fetchNews( news: resultRequst!, errorMessage: {[weak self] (error) in
         self?.showAlert(message: error)
         self?.activityIndicator?.stopAnimating()
     })
@@ -63,7 +69,6 @@ class SwiftNewsViewController: UIViewController {
       }
     }
   }
-  
   
 }
 
@@ -89,6 +94,15 @@ extension SwiftNewsViewController: UITableViewDelegate, UITableViewDataSource {
       
     }
     return cell
+  }
+  
+  func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    if indexPath.row == (swiftNews?.count ?? 0) - 4 && isMoreNews {
+      viewModel?.fetchNews( news: resultRequst!, errorMessage: {[weak self] (error) in
+        self?.showAlert(message: error)
+        self?.activityIndicator?.stopAnimating()
+      })
+    }
   }
   
   func tableView(_: UITableView, didSelectRowAt: IndexPath) {

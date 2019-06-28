@@ -12,23 +12,29 @@ class SwiftNewsViewModel {
 
   private let service: SwiftNewsServiceProtocol
   private var isNextPage: String?
+  private var countInPage: Int?
 
   init(withSwiftNews serviceProtocol: SwiftNewsServiceProtocol = SwiftNewsService() ) {
     self.service = serviceProtocol
+    isNextPage = ""
   }
 
 }
 
 extension SwiftNewsViewModel: SwiftNewsViewProtocol {
-  func fetchNews(count: Int = 25, news: @escaping (([SwiftNewsModel]) -> Void), errorMessage: @escaping ((String) -> Void)) {
-    service.fetchData(success: { (swiftNews) in
-      
+  func fetchNews( news: @escaping (([SwiftNewsModel], Bool) -> Void), errorMessage: @escaping ((String) -> Void)) {
+    service.fetchData(count: self.countInPage, nextPage: isNextPage, success: { (swiftNews) in
+      if self.isNextPage == nil {
+        news([], false)
+        return
+      }
         self.isNextPage = swiftNews.data?.after
+        self.countInPage = swiftNews.data?.dist
   
-      let newsArray = swiftNews.data?.children?.map({ (item) ->  in
-        <#code#>
-      })
-      news(newsArray)
+     guard let newsArray = swiftNews.data?.children?.compactMap({ (item) -> SwiftNewsModel? in
+        return item.data
+     }) else {return}
+      news(newsArray, self.isNextPage != nil)
     }) { (error) in
       errorMessage(error)
     }
@@ -47,7 +53,7 @@ extension SwiftNewsViewModel: SwiftNewsViewProtocol {
 }
 
 protocol SwiftNewsViewProtocol: AnyObject {
-  func fetchNews(count: Int, news: @escaping (([SwiftNewsModel]) -> Void), errorMessage: @escaping ((String) -> Void))
+  func fetchNews( news: @escaping (([SwiftNewsModel], Bool) -> Void), errorMessage: @escaping ((String) -> Void))
   func imageForNews(url: String, imageCell: @escaping ((UIImage?) -> Void))
   func cancelImageDownloading(url:String)
 }

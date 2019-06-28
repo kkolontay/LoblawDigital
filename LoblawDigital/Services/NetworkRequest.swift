@@ -36,7 +36,7 @@
     
     override func main() {
       
-      
+      print(request?.url?.absoluteURL)
       if let request = self.request {
         URLSession.shared.dataTask(with: request) {
           [weak self] data, response, error in
