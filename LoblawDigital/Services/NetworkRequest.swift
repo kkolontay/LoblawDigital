@@ -23,19 +23,21 @@
     
     private var handler: ((Data?, String?) -> Void)?
     private var url: String?
+    private var request: URLRequest?
     
-    init(_ url: String, handler: @escaping (Data?, String?) -> Void) {
+    init(_ url: String, count: Int?, after: String?,  handler: @escaping (Data?, String?) -> Void) {
       super.init()
       self.handler = handler
       self.url = url
-      
+      request = createURLRequest(url, count: count, after: after)
     }
     
     
     
     override func main() {
       
-      if let url = url, let request = createURLRequest(url) {
+      
+      if let request = self.request {
         URLSession.shared.dataTask(with: request) {
           [weak self] data, response, error in
           if self?.isCancelled  ?? false {
@@ -64,11 +66,23 @@
     }
     
     
-    private func createURLRequest(_ url: String) -> URLRequest? {
-      guard let url = URL(string: url) else { return nil }
-      var request = URLRequest(url: url)
-      request.httpMethod = "GET"
+    private func createURLRequest(_ url: String, count: Int?, after: String?) -> URLRequest? {
+      if count != nil && after != nil {
+        let urlComponents = url + "?"
+        var components = URLComponents(string: urlComponents)
+        let countQueryItem = URLQueryItem(name: "count", value: "\(count!)")
+        components?.queryItems?.append(countQueryItem)
+        let afterQueryItem = URLQueryItem(name:"after", value: after!)
+        components?.queryItems?.append(afterQueryItem)
+        guard let urlRequest = components?.url else { return nil}
+        return URLRequest(url: urlRequest)
+      } else {
+        guard let url = URL(string: url) else { return nil }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        return request
+      }
       
-      return request
+      
     }
   }

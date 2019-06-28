@@ -16,11 +16,13 @@ struct SwiftNewsModel: Codable {
 }
 
 struct NewsDataModel: Codable {
-  var data: SwiftNewsModel
+  var data: SwiftNewsModel?
 }
 
 struct ChildrenOwner: Codable {
+  var dist: Int?
   var children: [NewsDataModel]?
+  var after: String?
 }
 
 

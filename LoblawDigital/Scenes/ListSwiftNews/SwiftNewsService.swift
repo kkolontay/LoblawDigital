@@ -10,7 +10,7 @@ import UIKit
 
 
 protocol SwiftNewsServiceProtocol {
-  func fetchData(success: @escaping (([NewsDataModel]) -> Void), errorMessage:@escaping ((String) -> Void))
+  func fetchData(success: @escaping ((ParentOwner) -> Void), errorMessage:@escaping ((String) -> Void))
   func downloadImage(url: String, success: @escaping ((UIImage?) -> Void))
   func cancelRequest(url: String)
 }
@@ -24,7 +24,7 @@ class SwiftNewsService: SwiftNewsServiceProtocol {
     activeImageDowloading = Dictionary<String, Download>()
   }
   
-  func fetchData(success: @escaping (([NewsDataModel]) -> Void), errorMessage:@escaping ((String) -> Void)) {
+  func fetchData(success: @escaping ((ParentOwner) -> Void), errorMessage:@escaping ((String) -> Void)) {
     let url = StringURLRequest.fetchSwiftNews()
     let networkRequest = NetworkRequests(url) {
       data, error in
@@ -37,7 +37,7 @@ class SwiftNewsService: SwiftNewsServiceProtocol {
         do {
           
           let object = try decoder.decode(ParentOwner.self, from: data!)
-          success(object.data?.children ?? [])
+          success(object)
           
         } catch let error as NSError {
           errorMessage(error.localizedDescription)

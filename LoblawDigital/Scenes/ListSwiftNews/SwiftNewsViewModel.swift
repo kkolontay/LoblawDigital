@@ -11,6 +11,7 @@ import UIKit
 class SwiftNewsViewModel {
 
   private let service: SwiftNewsServiceProtocol
+  private var isNextPage: String?
 
   init(withSwiftNews serviceProtocol: SwiftNewsServiceProtocol = SwiftNewsService() ) {
     self.service = serviceProtocol
@@ -19,10 +20,13 @@ class SwiftNewsViewModel {
 }
 
 extension SwiftNewsViewModel: SwiftNewsViewProtocol {
-  func fetchNews(news: @escaping (([SwiftNewsModel]) -> Void), errorMessage: @escaping ((String) -> Void)) {
+  func fetchNews(count: Int = 25, news: @escaping (([SwiftNewsModel]) -> Void), errorMessage: @escaping ((String) -> Void)) {
     service.fetchData(success: { (swiftNews) in
-      let newsArray = swiftNews.map({ (item) -> SwiftNewsModel in
-        return item.data
+      
+        self.isNextPage = swiftNews.data?.after
+  
+      let newsArray = swiftNews.data?.children?.map({ (item) ->  in
+        <#code#>
       })
       news(newsArray)
     }) { (error) in
@@ -43,7 +47,7 @@ extension SwiftNewsViewModel: SwiftNewsViewProtocol {
 }
 
 protocol SwiftNewsViewProtocol: AnyObject {
-  func fetchNews(news: @escaping (([SwiftNewsModel]) -> Void), errorMessage: @escaping ((String) -> Void))
+  func fetchNews(count: Int, news: @escaping (([SwiftNewsModel]) -> Void), errorMessage: @escaping ((String) -> Void))
   func imageForNews(url: String, imageCell: @escaping ((UIImage?) -> Void))
   func cancelImageDownloading(url:String)
 }
